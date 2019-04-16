@@ -10,7 +10,7 @@ router.post('/', (req, res) => {
 
     const { joiError } = postValidator(post)
     if (joiError) {
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 
     new PostModel({
@@ -30,20 +30,38 @@ router.get('/', async (req, res) => {
     return res.send(await PostModel.find())
 })
 
-router.post('/:postId/upvote', async (req, res) => {
-    const userId = req.body.userId
+router.get('/:postId', async (req, res, next) => {
 
-    try {
-        if (await PostModel.findById(req.params.postId).findOne({ voters: { $contains: userId } })) {
-            return res.send(PostModel.findByIdAndUpdate({ $inc: { votes: 1 } }))
+    UserModel.findById(req.params.postId, (error, result) => {
+        if (error) {
+            next(error)
+        } else if (result) {
+            res.status(200).json({
+                "result": result
+            })
         } else {
-            return res.send(PostModel.findByIdAndUpdate({ $inc: { votes: -1 } }))
+            res.status(404).json({
+                message: `can't find post with id ${req.params.postId}`
+            })
         }
-    } catch (error) {
-        console.log(error)
-        res.status(500).send(error)
-    }
-
+    })
 })
+
+
+// router.post('/:postId/upvote', async (req, res) => {
+//     const userId = req.body.userId
+
+//     try {
+//         if (await PostModel.findById(req.params.postId).findOne({ voters: { $contains: userId } })) {
+//             return res.send(PostModel.findByIdAndUpdate({ $inc: { votes: 1 } }))
+//         } else {
+//             return res.send(PostModel.findByIdAndUpdate({ $inc: { votes: -1 } }))
+//         }
+//     } catch (error) {
+//         console.log(error)
+//         res.status(500).send(error)
+//     }
+
+// })
 
 module.exports.postsRouter = router

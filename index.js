@@ -1,8 +1,8 @@
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
-const {usersRouter} = require('./routes/users')
-const {postsRouter} = require('./routes/posts')
+const { usersRouter } = require('./routes/users')
+const { postsRouter } = require('./routes/posts')
 
 mongoose.connect('mongodb://ahmedali:ahmed22@ds259085.mlab.com:59085/ahmedali')
 
@@ -14,7 +14,10 @@ app.use(express.json())
 app.use('/api/users', usersRouter)
 
 app.use('/api/posts', postsRouter)
-
-app.listen(3000, ()=>{
+app.use((error, req, res, next) => {
+    res.status(666).send(error.message)
+})
+app.listen(3000, () => {
     console.log('listening... ')
 })
+

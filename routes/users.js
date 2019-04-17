@@ -4,9 +4,27 @@ const mongoose = require('mongoose')
 const router = express.Router();
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
 const authMiddlewareFunc = require('../middleware/auth')
+const uuid = require('uuid4');
+const path = require('path')
 
-router.post('/signup', async (req, res, next) => {
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/users')
+    },
+
+    filename: function (req, file, cb) {
+        cb(null, uuid() + path.extname(file.originalname));
+    }
+})
+
+const multerUploader = multer({
+    storage: storage
+})
+
+
+router.post('/signup', multerUploader.single('userImage'), async (req, res, next) => {
     let user = req.body;
     console.log(user)
     const { joiError } = userValidator(user);
@@ -28,7 +46,8 @@ router.post('/signup', async (req, res, next) => {
             user = new UserModel({
                 name: user.name,
                 email: user.email,
-                password: await bcrypt.hash(user.password, 10).catch(err => console.log(err))
+                password: await bcrypt.hash(user.password, 10).catch(err => console.log(err)),
+                imageUrl: req.file.path
             });
 
             const error = user.validateSync()
@@ -103,7 +122,7 @@ router.post('/login', async (req, res, next) => {
 })
 
 router.get('/', async (req, res) => {
-    const allUsers = await UserModel.find().select('_id name email');
+    const allUsers = await UserModel.find().select('_id name email imageUrl');
     res.send(allUsers)
 })
 

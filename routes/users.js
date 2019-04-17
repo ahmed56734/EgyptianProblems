@@ -47,7 +47,7 @@ router.post('/signup', multerUploader.single('userImage'), async (req, res, next
                 name: user.name,
                 email: user.email,
                 password: await bcrypt.hash(user.password, 10).catch(err => console.log(err)),
-                imageUrl: req.file.path
+                imageUrl: req.host + ':3000/' + req.file.path
             });
 
             const error = user.validateSync()
